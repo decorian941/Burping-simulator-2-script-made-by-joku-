@@ -1,0 +1,224 @@
+-- LocalScript in PlayerGui or StarterPlayerScripts
+local HttpService = game:GetService("HttpService")
+local player = game.Players.LocalPlayer
+
+-- ===== SETTINGS FILE =====
+local settingsFile = "JOKU_BURP_HAXX_Settings.json"
+local settings = {autoDrink=false, antiKick=false, autoPrestige=false, infJump=false, themeIndex=1, guiVisible=true}
+
+-- Load settings if file exists
+pcall(function()
+    if isfile(settingsFile) then
+        local data = readfile(settingsFile)
+        local loadedSettings = HttpService:JSONDecode(data)
+        for k,v in pairs(loadedSettings) do
+            settings[k] = v
+        end
+    end
+end)
+
+-- ===== GUI CREATION =====
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "JOKU_BURP_HAXX"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = player:WaitForChild("PlayerGui")
+
+local Frame = Instance.new("Frame")
+Frame.Size = UDim2.new(0, 300, 0, 400)
+Frame.Position = UDim2.new(0.5, -150, 0.5, -200)
+Frame.BorderSizePixel = 0
+Frame.Active = true
+Frame.Draggable = true
+Frame.Parent = ScreenGui
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1,0,0,40)
+Title.BackgroundTransparency = 1
+Title.Text = "JOKU BURP HAXX"
+Title.Font = Enum.Font.SourceSansBold
+Title.TextSize = 24
+Title.Parent = Frame
+
+-- ===== BUTTON CREATOR =====
+local function createButton(name,posY)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0,280,0,40)
+    btn.Position = UDim2.new(0.5,-140,0,posY)
+    btn.BackgroundColor3 = Color3.fromRGB(50,50,50)
+    btn.TextColor3 = Color3.fromRGB(255,255,255)
+    btn.Font = Enum.Font.SourceSansBold
+    btn.TextSize = 16
+    btn.Text = name
+    btn.Parent = Frame
+    return btn
+end
+
+-- Feature buttons
+local autoDrinkBtn = createButton("Auto Fast Drink: OFF",50)
+local antiKickBtn = createButton("Anti Kick: OFF",110)
+local autoPrestigeBtn = createButton("Auto Prestige: OFF",170)
+
+-- Settings label
+local settingsLabel = Instance.new("TextLabel")
+settingsLabel.Size = UDim2.new(1,0,0,30)
+settingsLabel.Position = UDim2.new(0,0,0,230)
+settingsLabel.BackgroundTransparency = 1
+settingsLabel.Text = "Settings"
+settingsLabel.TextColor3 = Color3.fromRGB(255,255,255)
+settingsLabel.Font = Enum.Font.SourceSansBold
+settingsLabel.TextSize = 20
+settingsLabel.Parent = Frame
+
+-- Settings buttons
+local themeBtn = createButton("Change Theme Color: Red/Black",270)
+local infJumpBtn = createButton("Infinite Jump: OFF",310)
+
+-- Hide/Show GUI button
+local hideShowBtn = Instance.new("TextButton")
+hideShowBtn.Size = UDim2.new(0,100,0,30)
+hideShowBtn.Position = UDim2.new(0,10,0,10)
+hideShowBtn.BackgroundColor3 = Color3.fromRGB(50,50,50)
+hideShowBtn.TextColor3 = Color3.fromRGB(255,255,255)
+hideShowBtn.Font = Enum.Font.SourceSansBold
+hideShowBtn.TextSize = 16
+hideShowBtn.Text = "Hide GUI"
+hideShowBtn.Parent = ScreenGui
+
+-- ===== GLOBAL FLAGS =====
+getgenv().autoDrink = settings.autoDrink
+getgenv().antiKick = settings.antiKick
+getgenv().autoPrestige = settings.autoPrestige
+getgenv().infJump = settings.infJump
+getgenv().themeIndex = settings.themeIndex
+getgenv().guiVisible = settings.guiVisible
+
+-- Apply GUI visibility
+Frame.Visible = getgenv().guiVisible
+hideShowBtn.Text = getgenv().guiVisible and "Hide GUI" or "Show GUI"
+infJumpBtn.Text = "Infinite Jump: "..(getgenv().infJump and "ON" or "OFF")
+autoDrinkBtn.Text = "Auto Fast Drink: "..(getgenv().autoDrink and "ON" or "OFF")
+antiKickBtn.Text = "Anti Kick: "..(getgenv().antiKick and "ON" or "OFF")
+autoPrestigeBtn.Text = "Auto Prestige: "..(getgenv().autoPrestige and "ON" or "OFF")
+
+-- ===== THEMES =====
+local themes = {
+    {title=Color3.fromRGB(255,0,0), background=Color3.fromRGB(30,30,30), name="Red/Black"},
+    {title=Color3.fromRGB(255,255,255), background=Color3.fromRGB(0,0,0), name="White/Black"},
+    {title=Color3.fromRGB(128,0,128), background=Color3.fromRGB(20,20,20), name="Purple/Black"},
+    {title=Color3.fromRGB(0,128,0), background=Color3.fromRGB(20,20,20), name="Dark Green/Black"}
+}
+
+-- Apply theme function
+local function applyTheme(theme)
+    Frame.BackgroundColor3 = theme.background
+    autoDrinkBtn.BackgroundColor3 = theme.background
+    antiKickBtn.BackgroundColor3 = theme.background
+    autoPrestigeBtn.BackgroundColor3 = theme.background
+    themeBtn.BackgroundColor3 = theme.background
+    infJumpBtn.BackgroundColor3 = theme.background
+    hideShowBtn.BackgroundColor3 = theme.background
+    Title.TextColor3 = theme.title
+end
+
+-- Apply saved theme
+applyTheme(themes[getgenv().themeIndex])
+themeBtn.Text = "Change Theme Color: "..themes[getgenv().themeIndex].name
+
+-- ===== SAVE SETTINGS FUNCTION =====
+local function saveSettings()
+    settings.autoDrink = getgenv().autoDrink
+    settings.antiKick = getgenv().antiKick
+    settings.autoPrestige = getgenv().autoPrestige
+    settings.infJump = getgenv().infJump
+    settings.themeIndex = getgenv().themeIndex
+    settings.guiVisible = getgenv().guiVisible
+    writefile(settingsFile,HttpService:JSONEncode(settings))
+end
+
+-- ===== BUTTON CALLBACKS =====
+autoDrinkBtn.MouseButton1Click:Connect(function()
+    getgenv().autoDrink = not getgenv().autoDrink
+    autoDrinkBtn.Text = "Auto Fast Drink: "..(getgenv().autoDrink and "ON" or "OFF")
+    saveSettings()
+end)
+
+antiKickBtn.MouseButton1Click:Connect(function()
+    getgenv().antiKick = not getgenv().antiKick
+    antiKickBtn.Text = "Anti Kick: "..(getgenv().antiKick and "ON" or "OFF")
+    saveSettings()
+end)
+
+autoPrestigeBtn.MouseButton1Click:Connect(function()
+    getgenv().autoPrestige = not getgenv().autoPrestige
+    autoPrestigeBtn.Text = "Auto Prestige: "..(getgenv().autoPrestige and "ON" or "OFF")
+    saveSettings()
+end)
+
+infJumpBtn.MouseButton1Click:Connect(function()
+    getgenv().infJump = not getgenv().infJump
+    infJumpBtn.Text = "Infinite Jump: "..(getgenv().infJump and "ON" or "OFF")
+    saveSettings()
+end)
+
+themeBtn.MouseButton1Click:Connect(function()
+    getgenv().themeIndex = getgenv().themeIndex + 1
+    if getgenv().themeIndex > #themes then getgenv().themeIndex = 1 end
+    applyTheme(themes[getgenv().themeIndex])
+    themeBtn.Text = "Change Theme Color: "..themes[getgenv().themeIndex].name
+    saveSettings()
+end)
+
+-- Hide/Show GUI Button Callback (only visibility, does NOT change theme)
+hideShowBtn.MouseButton1Click:Connect(function()
+    getgenv().guiVisible = not getgenv().guiVisible
+    Frame.Visible = getgenv().guiVisible
+    hideShowBtn.Text = getgenv().guiVisible and "Hide GUI" or "Show GUI"
+    saveSettings()
+end)
+
+-- ===== MULTI-FEATURE LOOPS =====
+-- Auto Fast Drink Loop (4 burp points per drink)
+spawn(function()
+    while true do
+        task.wait(0.1)
+        if getgenv().autoDrink then
+            pcall(function()
+                local args = {"Omega Burp Juice"}
+                for i=1,4 do
+                    game:GetService("ReplicatedStorage"):WaitForChild("Events"):WaitForChild("DrinkEvent"):FireServer(unpack(args))
+                end
+            end)
+        end
+    end
+end)
+
+-- Anti-Kick Loop
+spawn(function()
+    while true do
+        task.wait(30)
+        if getgenv().antiKick then
+            local vu = game:GetService("VirtualUser")
+            vu:CaptureController()
+            vu:ClickButton1(Vector2.new(0,0))
+        end
+    end
+end)
+
+-- Auto Prestige Loop
+spawn(function()
+    while true do
+        task.wait(1)
+        if getgenv().autoPrestige then
+            pcall(function()
+                game:GetService("ReplicatedStorage"):WaitForChild("Events"):WaitForChild("PrestigeEvent"):FireServer()
+            end)
+        end
+    end
+end)
+
+-- Infinite Jump
+game:GetService("UserInputService").JumpRequest:Connect(function()
+    if getgenv().infJump and player.Character and player.Character:FindFirstChild("Humanoid") then
+        player.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+    end
+end)
